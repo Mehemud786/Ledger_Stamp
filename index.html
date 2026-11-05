@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,13 +11,13 @@
     
     <!-- PDF-Lib for modifying PDFs -->
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-
+    
     <!-- Add pdf.js for canvas rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
-
+    
     <style>
         /* Hide arrows on number inputs for a cleaner look */
         input[type="number"]::-webkit-outer-spin-button,
@@ -24,10 +25,11 @@
             -webkit-appearance: none;
             margin: 0;
         }
+        
         input[type="number"] {
             -moz-appearance: textfield;
         }
-
+        
         /* Draggable Stamp Styles */
         #stamp-overlay {
             position: absolute;
@@ -37,31 +39,42 @@
             user-select: none;
             transform-origin: top left;
         }
+        
         #stamp-overlay:active {
             cursor: grabbing;
         }
+        
         .stamp-content {
             display: flex;
-            align-items: flex-start; /* Align both text blocks to the top */
-            gap: 100px; /* 100px spacing between the two columns */
+            align-items: flex-start;
+            /* Align both text blocks to the top */
+            gap: 100px;
+            /* 100px spacing between the two columns */
         }
-        .stamp-cash-box, .stamp-table-box {
+        
+        .stamp-cash-box,
+        .stamp-table-box {
             font-family: monospace;
             white-space: pre;
             line-height: 1.1;
-            font-size: 14px; /* 14px font size */
-            width: max-content; 
+            font-size: 14px;
+            /* 14px font size */
+            width: max-content;
             color: black;
-            background-color: rgba(255, 255, 255, 0.9); /* White background for both */
-            border: 1px dashed #3b82f6; /* Dashed border for both */
+            background-color: rgba(255, 255, 255, 0.9);
+            /* White background for both */
+            border: 1px dashed #3b82f6;
+            /* Dashed border for both */
             padding: 6px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
+        
         #pdf-container {
             position: relative;
-            display: inline-block; 
+            display: inline-block;
             max-width: 100%;
         }
+        
         canvas {
             max-width: 100%;
             height: auto !important;
@@ -72,17 +85,21 @@
             .stamp-content {
                 gap: 8px;
             }
-            .stamp-cash-box, .stamp-table-box {
+            
+            .stamp-cash-box,
+            .stamp-table-box {
                 font-size: 0.7rem;
             }
+            
             .stamp-table-box {
                 padding: 2px;
             }
         }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen p-4 sm:p-6 font-sans">
 
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 sm:p-6 font-sans">
+    
     <!-- Main Two-Column Layout -->
     <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8">
         
@@ -131,12 +148,11 @@
                     <div class="col-start-2 col-end-4 border-b-2 border-gray-500 my-1"></div>
                     
                     <!-- Final Total -->
+                    <div class="text-green-400 font-bold">Grand Total</div>
                     <div class="col-start-3 text-right font-bold text-green-400 pr-2" id="out-final">0</div>
                 </div>
-                
-                <p class="text-xs text-gray-400 mt-6 italic">Changes here automatically update the PDF stamp.</p>
             </div>
-
+            
             <!-- Separate Cash in Hand Block with Dynamic Rows -->
             <div class="bg-gray-800 p-5 sm:p-6 rounded-xl shadow-lg border border-gray-700">
                 <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
@@ -158,7 +174,7 @@
                         <input type="text" inputmode="numeric" id="calc-cash" class="bg-gray-700 border border-gray-600 rounded px-2 py-2 text-right focus:outline-none focus:border-blue-500 transition-colors w-24 sm:w-32" placeholder="0">
                     </div>
                 </div>
-
+                
                 <!-- Cash Summary Total -->
                 <div class="border-b border-gray-600 my-4"></div>
                 <div class="flex justify-between items-center text-lg font-bold">
@@ -171,9 +187,9 @@
                     <!-- Populated dynamically via JS -->
                 </div>
             </div>
-
+            
         </div>
-
+        
         <!-- ========================================== -->
         <!-- RIGHT COLUMN: PDF EDITOR                   -->
         <!-- ========================================== -->
@@ -205,7 +221,7 @@
                     </label>
                 </div>
             </div>
-
+            
             <!-- PDF Preview & Interactive Canvas -->
             <div id="canvas-wrapper" class="hidden flex-grow bg-[#1a1e29] rounded-[1.5rem] sm:rounded-[2rem] border-2 border-dashed border-gray-600/60 flex items-start justify-center min-h-[400px] sm:min-h-[500px] overflow-auto relative p-2 sm:p-6 mt-4 pb-20">
                 <button id="btn-clear-pdf" class="absolute top-2 right-2 sm:top-4 sm:right-4 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 z-20 transition shadow-lg border border-red-800" title="Clear Document">
@@ -218,7 +234,7 @@
                     <canvas id="pdf-canvas"></canvas>
                     <div id="stamp-overlay"></div>
                 </div>
-
+                
                 <!-- PDF Pagination Controls -->
                 <div id="pdf-pagination" class="hidden absolute bottom-4 sm:bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-full shadow-lg border border-gray-600 flex items-center gap-4 sm:gap-6 z-20">
                     <button id="btn-prev-page" class="hover:text-blue-400 disabled:opacity-40 disabled:cursor-not-allowed transition p-1">
@@ -236,7 +252,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Application Logic -->
     <script>
         // --- Calculator Elements ---
@@ -251,12 +267,12 @@
         const outTotalCash = document.getElementById('out-total-cash');
         const uiCashStatus = document.getElementById('ui-cash-status');
         const calcInputs = [calcCash, calcReceipt, calcDue, calcExpanse, calcUpi];
-
+        
         // --- Dynamic Cash Rows Elements ---
         const btnAddCashRow = document.getElementById('btn-add-cash-row');
         const btnSubCashRow = document.getElementById('btn-sub-cash-row');
         const cashRowsContainer = document.getElementById('cash-rows-container');
-
+        
         // --- PDF Editor Elements ---
         const pdfUpload = document.getElementById('pdf-upload');
         const btnDownload = document.getElementById('btn-download');
@@ -272,38 +288,38 @@
         const btnPrevPage = document.getElementById('btn-prev-page');
         const btnNextPage = document.getElementById('btn-next-page');
         const pageIndicator = document.getElementById('page-indicator');
-
+        
         // --- Application State ---
-        let originalPdfBytes = null; 
-        let loadedPdfDoc = null; 
+        let originalPdfBytes = null;
+        let loadedPdfDoc = null;
         let currentPageNum = 1;
         let totalPages = 1;
         
         // Structured State for all printable details
-        let currentCalculations = { 
+        let currentCalculations = {
             baseCash: 0,
             cashDetails: [],
-            totalCash: 0, 
-            receipt: 0, 
-            due: 0, 
-            sub1: 0, 
-            expanse: 0, 
-            sub2: 0, 
-            upi: 0, 
-            final: 0 
+            totalCash: 0,
+            receipt: 0,
+            due: 0,
+            sub1: 0,
+            expanse: 0,
+            sub2: 0,
+            upi: 0,
+            final: 0
         };
         
         let pdfPageWidth = 0;
         let pdfPageHeight = 0;
         let canvasScale = 1;
-
+        
         // --- Responsive Drag State (Stored in Native PDF Document Coordinates) ---
         let isDragging = false;
         let pdfStampX = 30; // Native document X
         let pdfStampY = 30; // Native document Y
         let dragOffsetX = 0;
         let dragOffsetY = 0;
-
+        
         // --- Resize Listener for Responsiveness ---
         let resizeTimer;
         window.addEventListener('resize', () => {
@@ -314,7 +330,7 @@
                 }
             }, 200);
         });
-
+        
         // --- Number Formatter Helper ---
         function formatNumberInput(e) {
             if (e.target.value !== '') {
@@ -322,17 +338,17 @@
                 e.target.value = val.toLocaleString('en-IN');
             }
         }
-
+        
         // --- Add Dynamic Addition Cash Row Logic (+) ---
         btnAddCashRow.addEventListener('click', () => {
             createDynamicCashRow('add', '(+)', 'dynamic-cash-val-add', 'text-gray-400');
         });
-
+        
         // --- Add Dynamic Subtraction Cash Row Logic (-) ---
         btnSubCashRow.addEventListener('click', () => {
             createDynamicCashRow('sub', '(-)', 'dynamic-cash-val-sub', 'text-red-400');
         });
-
+        
         // --- Dynamic Row Factory Function ---
         function createDynamicCashRow(type, labelText, inputClass, labelClass) {
             const row = document.createElement('div');
@@ -343,13 +359,13 @@
             nameInput.type = 'text';
             nameInput.className = 'dynamic-cash-name bg-gray-700 border border-gray-600 rounded px-2 py-2 focus:outline-none focus:border-blue-500 transition-colors flex-grow text-sm sm:text-base min-w-[80px]';
             nameInput.placeholder = 'Note';
-            nameInput.addEventListener('input', calculateMath); 
+            nameInput.addEventListener('input', calculateMath);
             
             // +/- Icon visual indicator
             const operatorLabel = document.createElement('div');
             operatorLabel.className = `${labelClass} font-bold px-1 text-sm sm:text-base`;
             operatorLabel.textContent = labelText;
-
+            
             // Value Box
             const valInput = document.createElement('input');
             valInput.type = 'text';
@@ -389,16 +405,16 @@
                 cashRowsContainer.appendChild(row);
             }
             
-            calculateMath(); 
+            calculateMath();
         }
-
+        
         // --- 1. Real-time Calculation Logic ---
         function calculateMath() {
             // Base Cash sum calculation (+ and -)
             const baseCash = Number(calcCash.value.replace(/,/g, '')) || 0;
             const cashDetails = [];
             let totalCash = baseCash;
-
+            
             document.querySelectorAll('.dynamic-cash-row').forEach(row => {
                 const name = row.querySelector('.dynamic-cash-name').value || 'Note';
                 const isAdd = row.classList.contains('dynamic-cash-row-add');
@@ -420,11 +436,11 @@
             const due = Number(calcDue.value.replace(/,/g, '')) || 0;
             const expanse = Number(calcExpanse.value.replace(/,/g, '')) || 0;
             const upi = Number(calcUpi.value.replace(/,/g, '')) || 0;
-
+            
             const sub1 = receipt + due;
             const sub2 = sub1 - expanse;
             const finalTotal = sub2 - upi;
-
+            
             outTotalCash.textContent = totalCash.toLocaleString('en-IN');
             outSub1.textContent = sub1.toLocaleString('en-IN');
             outSub2.textContent = sub2.toLocaleString('en-IN');
@@ -439,17 +455,17 @@
             } else {
                 uiCashStatus.innerHTML = `<span class="text-green-400">Cash Status</span><span class="text-green-400 pr-2">✔️ OK</span>`;
             }
-
+            
             currentCalculations = { baseCash, cashDetails, totalCash, receipt, due, sub1, expanse, sub2, upi, final: finalTotal };
             updateStampText();
         }
-
+        
         // --- 2. String Formatters for Both Stamp Blocks ---
         function getReceiptStampLines() {
             const padNum = (num) => Number(num).toLocaleString('en-IN').padStart(10, ' ');
             const v = currentCalculations;
             return [
-                `Receipt Amt ${padNum(v.receipt)}`, 
+                `Receipt Amt ${padNum(v.receipt)}`,
                 `Due Col.(+) ${padNum(v.due)}`,
                 `----------------------`,
                 `            ${padNum(v.sub1)}`,
@@ -461,7 +477,7 @@
                 `Grand Total ${padNum(v.final)}`
             ];
         }
-
+        
         function getCashStampLines() {
             const padNum = (num) => Number(num).toLocaleString('en-IN').padStart(10, ' ');
             const padName = (str) => (str || '').padEnd(10, ' ').substring(0, 10);
@@ -469,19 +485,19 @@
             const v = currentCalculations;
             const lines = [];
             
-            lines.push(`Cash in Hand  ${padNum(v.baseCash)}`); 
+            lines.push(`Cash in Hand  ${padNum(v.baseCash)}`);
             
             v.cashDetails.forEach(d => {
                 lines.push(`${padName(d.name)} ${d.operator}${padNum(d.value)}`);
             });
             
             if (v.cashDetails.length > 0) {
-                lines.push(`------------------------`); 
+                lines.push(`------------------------`);
                 lines.push(`Total Cash    ${padNum(v.totalCash)}`);
             }
             return lines;
         }
-
+        
         function updateStampText() {
             const receiptLines = getReceiptStampLines();
             receiptLines[receiptLines.length - 1] = `<span style="font-weight: bold;">${receiptLines[receiptLines.length - 1]}</span>`;
@@ -515,7 +531,7 @@
                 </div>
             `;
         }
-
+        
         // --- 3. Drag Logic (Screen -> PDF Coordinates) ---
         function updateStampPosition() {
             stampOverlay.style.transform = `scale(${canvasScale})`;
@@ -526,7 +542,7 @@
             stampOverlay.style.left = screenX + 'px';
             stampOverlay.style.top = screenY + 'px';
         }
-
+        
         function handleDragMove(clientX, clientY) {
             if (!isDragging) return;
             const containerRect = pdfContainer.getBoundingClientRect();
@@ -544,7 +560,7 @@
             
             updateStampPosition();
         }
-
+        
         // Mouse Events
         stampOverlay.addEventListener('mousedown', (e) => {
             isDragging = true;
@@ -552,20 +568,20 @@
             const rect = stampOverlay.getBoundingClientRect();
             dragOffsetX = e.clientX - rect.left;
             dragOffsetY = e.clientY - rect.top;
-            e.preventDefault(); 
+            e.preventDefault();
         });
-
+        
         window.addEventListener('mousemove', (e) => {
             if (isDragging) handleDragMove(e.clientX, e.clientY);
         });
-
+        
         window.addEventListener('mouseup', () => {
             if (isDragging) {
                 isDragging = false;
                 stampOverlay.style.cursor = 'grab';
             }
         });
-
+        
         // Touch Events
         stampOverlay.addEventListener('touchstart', (e) => {
             isDragging = true;
@@ -574,19 +590,19 @@
             dragOffsetX = touch.clientX - rect.left;
             dragOffsetY = touch.clientY - rect.top;
         }, { passive: false });
-
+        
         window.addEventListener('touchmove', (e) => {
             if (isDragging) {
-                e.preventDefault(); 
+                e.preventDefault();
                 const touch = e.touches[0];
                 handleDragMove(touch.clientX, touch.clientY);
             }
         }, { passive: false });
-
+        
         window.addEventListener('touchend', () => {
             if (isDragging) isDragging = false;
         });
-
+        
         // --- 4. Render PDF Page to Canvas (Responsive) ---
         async function renderPage(pageNum) {
             if (!loadedPdfDoc) return;
@@ -594,7 +610,7 @@
             const page = await loadedPdfDoc.getPage(pageNum);
             const viewportForScale = page.getViewport({ scale: 1 });
             
-            const containerPadding = window.innerWidth < 640 ? 16 : 48; 
+            const containerPadding = window.innerWidth < 640 ? 16 : 48;
             const availableWidth = canvasWrapper.clientWidth - containerPadding;
             
             canvasScale = Math.min(1.5, availableWidth / viewportForScale.width);
@@ -607,34 +623,34 @@
             pdfCanvas.height = Math.floor(viewport.height * outputScale);
             pdfCanvas.style.width = Math.floor(viewport.width) + "px";
             pdfCanvas.style.height = Math.floor(viewport.height) + "px";
-
+            
             const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
             const renderContext = { canvasContext: context, transform: transform, viewport: viewport };
-
+            
             await page.render(renderContext).promise;
-
+            
             pdfPageWidth = viewportForScale.width;
             pdfPageHeight = viewportForScale.height;
-
+            
             pageIndicator.textContent = `Page ${pageNum} of ${totalPages}`;
             btnPrevPage.disabled = pageNum <= 1;
             btnNextPage.disabled = pageNum >= totalPages;
             
             updateStampPosition();
         }
-
+        
         btnPrevPage.addEventListener('click', () => {
             if (currentPageNum <= 1) return;
             currentPageNum--;
             renderPage(currentPageNum);
         });
-
+        
         btnNextPage.addEventListener('click', () => {
             if (currentPageNum >= totalPages) return;
             currentPageNum++;
             renderPage(currentPageNum);
         });
-
+        
         async function loadPdfFromArrayBuffer(arrayBuffer) {
             originalPdfBytes = new Uint8Array(arrayBuffer);
             
@@ -651,12 +667,12 @@
             pdfPagination.classList.remove('hidden');
             stampOverlay.style.display = 'block';
             
-            pdfStampX = 20; 
+            pdfStampX = 20;
             pdfStampY = 20;
             
             await renderPage(currentPageNum);
         }
-
+        
         // --- 5. Stamping & Download/View Logic ---
         btnDownload.addEventListener('click', async () => {
             if (!originalPdfBytes) return;
@@ -664,15 +680,15 @@
             const originalBtnText = btnDownload.innerText;
             btnDownload.innerText = "Processing...";
             btnDownload.disabled = true;
-
+            
             try {
                 const pdfDoc = await PDFLib.PDFDocument.load(originalPdfBytes);
                 const courierFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Courier);
                 const courierBoldFont = await pdfDoc.embedFont(PDFLib.StandardFonts.CourierBold);
                 const pages = pdfDoc.getPages();
                 
-                const targetPage = pages[currentPageNum - 1]; 
-
+                const targetPage = pages[currentPageNum - 1];
+                
                 // Layout Configurations (Native PDF sizes)
                 const fontSize = 14; // Matched to CSS
                 const lineHeight = 15.4; // fontSize * 1.1
@@ -682,7 +698,7 @@
                 
                 // Overlay Top-Left Anchor
                 const overlayPdfYTop = pdfPageHeight - pdfStampY;
-
+                
                 // 1. Get and measure strings
                 const cashLines = getCashStampLines();
                 const receiptLines = getReceiptStampLines();
@@ -712,7 +728,7 @@
                     width: cashRectWidth,
                     height: cashRectHeight,
                     color: PDFLib.rgb(1, 1, 1),
-                    borderColor: PDFLib.rgb(0.23, 0.51, 0.96), 
+                    borderColor: PDFLib.rgb(0.23, 0.51, 0.96),
                     borderWidth: 1,
                     borderDashArray: [3, 3],
                     opacity: 0.9
@@ -720,30 +736,44 @@
                 
                 // Text for Left Block
                 const leftTextX = leftBoxX + padding;
-                const leftTextY = (pdfPageHeight - pdfStampY) - padding - fontSize + 2; 
+                const leftTextY = (pdfPageHeight - pdfStampY) - padding - fontSize + 2;
                 
                 if (currentCalculations.cashDetails.length > 0) {
                     const normalCash = cashLines.slice(0, -1).join('\n');
                     const boldCash = cashLines[cashLines.length - 1];
                     
                     targetPage.drawText(normalCash, {
-                        x: leftTextX, y: leftTextY, size: fontSize, font: courierFont, color: PDFLib.rgb(0, 0, 0), lineHeight: lineHeight
+                        x: leftTextX,
+                        y: leftTextY,
+                        size: fontSize,
+                        font: courierFont,
+                        color: PDFLib.rgb(0, 0, 0),
+                        lineHeight: lineHeight
                     });
                     targetPage.drawText(boldCash, {
-                        x: leftTextX, y: leftTextY - ((cashLines.length - 1) * lineHeight), size: fontSize, font: courierBoldFont, color: PDFLib.rgb(0, 0, 0), lineHeight: lineHeight
+                        x: leftTextX,
+                        y: leftTextY - ((cashLines.length - 1) * lineHeight),
+                        size: fontSize,
+                        font: courierBoldFont,
+                        color: PDFLib.rgb(0, 0, 0),
+                        lineHeight: lineHeight
                     });
                 } else {
                     targetPage.drawText(cashLines[0], {
-                        x: leftTextX, y: leftTextY, size: fontSize, font: courierBoldFont, color: PDFLib.rgb(0, 0, 0)
+                        x: leftTextX,
+                        y: leftTextY,
+                        size: fontSize,
+                        font: courierBoldFont,
+                        color: PDFLib.rgb(0, 0, 0)
                     });
                 }
-
+                
                 // 2.5 Draw Cash Status Box (Below Cash Summary)
                 const diff = currentCalculations.totalCash - currentCalculations.final;
                 
                 // Note: Standard fonts can't reliably render emojis like "✔️". Stripped for PDF generation.
-                const statusPdfText = diff < 0 ? `Cash Short : ${Math.abs(diff).toLocaleString('en-IN')}` 
-                                    : (diff > 0 ? `Cash Extra : ${diff.toLocaleString('en-IN')}` : `Cash OK`);
+                const statusPdfText = diff < 0 ? `Cash Short : ${Math.abs(diff).toLocaleString('en-IN')}` :
+                    (diff > 0 ? `Cash Extra : ${diff.toLocaleString('en-IN')}` : `Cash OK`);
                 
                 const statusTextWidth = courierBoldFont.widthOfTextAtSize(statusPdfText, fontSize);
                 const statusRectHeight = lineHeight + (padding * 2);
@@ -758,7 +788,7 @@
                     width: statusRectWidth,
                     height: statusRectHeight,
                     color: PDFLib.rgb(1, 1, 1),
-                    borderColor: PDFLib.rgb(0.23, 0.51, 0.96), 
+                    borderColor: PDFLib.rgb(0.23, 0.51, 0.96),
                     borderWidth: 1,
                     borderDashArray: [3, 3],
                     opacity: 0.9
@@ -774,7 +804,7 @@
                     color: PDFLib.rgb(0, 0, 0),
                     lineHeight: lineHeight
                 });
-
+                
                 // 3. Draw Right Block (Receipt Calculation) Background
                 targetPage.drawRectangle({
                     x: rightBoxX,
@@ -782,26 +812,36 @@
                     width: receiptRectWidth,
                     height: receiptRectHeight,
                     color: PDFLib.rgb(1, 1, 1),
-                    borderColor: PDFLib.rgb(0.23, 0.51, 0.96), 
+                    borderColor: PDFLib.rgb(0.23, 0.51, 0.96),
                     borderWidth: 1,
                     borderDashArray: [3, 3],
                     opacity: 0.9
                 });
-
+                
                 // Text for Right Block
                 const rightTextX = rightBoxX + padding;
                 const rightTextY = (pdfPageHeight - pdfStampY) - padding - fontSize + 2;
                 
                 const normalReceipt = receiptLines.slice(0, -1).join('\n');
                 const boldReceipt = receiptLines[receiptLines.length - 1];
-
+                
                 targetPage.drawText(normalReceipt, {
-                    x: rightTextX, y: rightTextY, size: fontSize, font: courierFont, color: PDFLib.rgb(0, 0, 0), lineHeight: lineHeight
+                    x: rightTextX,
+                    y: rightTextY,
+                    size: fontSize,
+                    font: courierFont,
+                    color: PDFLib.rgb(0, 0, 0),
+                    lineHeight: lineHeight
                 });
                 targetPage.drawText(boldReceipt, {
-                    x: rightTextX, y: rightTextY - ((receiptLines.length - 1) * lineHeight), size: fontSize, font: courierBoldFont, color: PDFLib.rgb(0, 0, 0), lineHeight: lineHeight
+                    x: rightTextX,
+                    y: rightTextY - ((receiptLines.length - 1) * lineHeight),
+                    size: fontSize,
+                    font: courierBoldFont,
+                    color: PDFLib.rgb(0, 0, 0),
+                    lineHeight: lineHeight
                 });
-
+                
                 // Save & Serve the File
                 const stampedPdfBytes = await pdfDoc.save();
                 const blob = new Blob([stampedPdfBytes], { type: 'application/pdf' });
@@ -824,13 +864,13 @@
                 btnDownload.disabled = false;
             }
         });
-
+        
         // --- 6. Initial Event Listeners ---
         calcInputs.forEach(input => {
             input.addEventListener('input', calculateMath);
             input.addEventListener('blur', formatNumberInput);
         });
-
+        
         pdfUpload.addEventListener('change', async (event) => {
             const file = event.target.files[0];
             if (file && file.type === 'application/pdf') {
@@ -841,17 +881,17 @@
             }
             event.target.value = '';
         });
-
+        
         uploadZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadZone.style.opacity = '0.7';
         });
-
+        
         uploadZone.addEventListener('dragleave', (e) => {
             e.preventDefault();
             uploadZone.style.opacity = '1';
         });
-
+        
         uploadZone.addEventListener('drop', async (e) => {
             e.preventDefault();
             uploadZone.style.opacity = '1';
@@ -863,7 +903,7 @@
                 alert("Please drop a valid PDF file.");
             }
         });
-
+        
         // --- 7. Clear PDF Logic ---
         btnClearPdf.addEventListener('click', () => {
             originalPdfBytes = null;
@@ -881,9 +921,10 @@
             const context = pdfCanvas.getContext('2d');
             context.clearRect(0, 0, pdfCanvas.width, pdfCanvas.height);
         });
-
+        
         // Initialize state
         calculateMath();
     </script>
 </body>
+
 </html>
