@@ -114,13 +114,13 @@
                 
                 <div class="grid grid-cols-[1fr_auto_80px] sm:grid-cols-[1fr_40px_100px] gap-y-3 items-center text-base sm:text-lg">
                     <!-- Receipt Amount -->
-                    <div class="col-span-2">Receipt Amount</div>
-                    <input type="text" inputmode="numeric" id="calc-receipt" class="bg-gray-700 border border-gray-600 rounded px-2 py-2 text-right focus:outline-none focus:border-blue-500 transition-colors w-full" placeholder="0">
+                    <div class="col-span-2 flex items-center" id="label-receipt">Receipt Amount</div>
+                    <input type="text" inputmode="numeric" id="calc-receipt" class="bg-gray-700 border border-gray-600 rounded px-2 py-2 text-right focus:outline-none focus:border-blue-500 transition-all duration-300 w-full" placeholder="0">
                     
                     <!-- Due Collection -->
-                    <div>Due collection</div>
+                    <div class="flex items-center" id="label-due">Due collection</div>
                     <div class="text-center text-gray-400 px-1">(+)</div>
-                    <input type="text" inputmode="numeric" id="calc-due" class="bg-gray-700 border border-gray-600 rounded px-2 py-2 text-right focus:outline-none focus:border-blue-500 transition-colors w-full" placeholder="0">
+                    <input type="text" inputmode="numeric" id="calc-due" class="bg-gray-700 border border-gray-600 rounded px-2 py-2 text-right focus:outline-none focus:border-blue-500 transition-all duration-300 w-full" placeholder="0">
                     
                     <!-- Solid Line -->
                     <div class="col-start-2 col-end-4 border-b-2 border-gray-500 my-1"></div>
@@ -196,8 +196,11 @@
         <div class="w-full lg:w-2/3 bg-gray-800 p-4 sm:p-6 rounded-xl shadow-lg border border-gray-700 flex flex-col relative" id="right-column">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-2 border-b border-gray-700 pb-2">
                 <h2 class="text-lg sm:text-xl font-semibold">PDF Editor & Stamper</h2>
-                <button id="btn-download" disabled class="hidden w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded transition-colors cursor-pointer text-sm shadow-md">
-                    Stamp & View PDF
+                <button id="btn-download" disabled class="hidden w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded transition-colors flex items-center justify-center gap-2 cursor-pointer text-sm shadow-md">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Print
                 </button>
             </div>
             
@@ -210,15 +213,25 @@
                         </svg>
                     </div>
                     <h3 class="text-lg sm:text-xl font-bold text-white mb-2 pointer-events-none">Tap or Drop file here</h3>
-                    <p class="text-gray-400 mb-6 sm:mb-8 text-xs sm:text-sm pointer-events-none">Must be a valid PDF document</p>
+                    <p class="text-gray-400 mb-6 sm:mb-8 text-xs sm:text-sm pointer-events-none">Import a valid PDF document or start with a blank page</p>
                     
-                    <label class="bg-[#242b3b] hover:bg-[#2d3548] text-white px-6 py-3 sm:px-8 sm:py-4 rounded-xl border border-gray-700/80 flex items-center gap-3 transition w-full max-w-xs sm:max-w-sm justify-center shadow-sm cursor-pointer relative z-10">
-                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#a78bfa]" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-                        </svg>
-                        <span class="font-medium text-base sm:text-lg">Browse Device</span>
-                        <input type="file" id="pdf-upload" accept="application/pdf" class="hidden">
-                    </label>
+                    <div class="flex flex-col sm:flex-row gap-3 w-full max-w-md justify-center relative z-10">
+                        <label class="bg-[#242b3b] hover:bg-[#2d3548] text-white px-5 py-3 sm:px-6 sm:py-4 rounded-xl border border-gray-700/80 flex items-center justify-center gap-2 transition shadow-sm cursor-pointer flex-1">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#a78bfa]" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                            </svg>
+                            <span class="font-medium text-sm sm:text-base whitespace-nowrap">Browse Device</span>
+                            <input type="file" id="pdf-upload" accept="application/pdf" class="hidden">
+                        </label>
+                        
+                        <!-- New Blank Page Button -->
+                        <button id="btn-blank-page" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 sm:px-6 sm:py-4 rounded-xl border border-blue-500/80 flex items-center justify-center gap-2 transition shadow-sm flex-1">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span class="font-medium text-sm sm:text-base whitespace-nowrap">Blank Page</span>
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -275,6 +288,7 @@
         
         // --- PDF Editor Elements ---
         const pdfUpload = document.getElementById('pdf-upload');
+        const btnBlankPage = document.getElementById('btn-blank-page'); // New Element
         const btnDownload = document.getElementById('btn-download');
         const pdfContainer = document.getElementById('pdf-container');
         const pdfCanvas = document.getElementById('pdf-canvas');
@@ -616,7 +630,10 @@
             canvasScale = Math.min(1.5, availableWidth / viewportForScale.width);
             
             const viewport = page.getViewport({ scale: canvasScale });
-            const outputScale = window.devicePixelRatio || 1;
+            
+            // Reduced the multiplier by 30% (from 3 down to 2.1)
+            const outputScale = (window.devicePixelRatio || 1) * 2.1;
+            
             const context = pdfCanvas.getContext('2d');
             
             pdfCanvas.width = Math.floor(viewport.width * outputScale);
@@ -650,6 +667,112 @@
             currentPageNum++;
             renderPage(currentPageNum);
         });
+
+        // --- AI PDF Data Extraction ---
+        async function autoExtractPDFData(pdfBytes) {
+            try {
+                const pdf = await pdfjsLib.getDocument({ data: pdfBytes.slice(0) }).promise;
+                
+                let receiptFound = false;
+                let dueFound = false;
+
+                // Scan pages for the target table rows
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    
+                    // Map items with X, Y coordinates
+                    let items = textContent.items.map(item => ({
+                        str: item.str.trim(),
+                        x: item.transform[4],
+                        y: item.transform[5]
+                    })).filter(i => i.str.length > 0);
+                    
+                    // Sort top-to-bottom (Y descending), then left-to-right (X ascending)
+                    // This reconstructs the tabular layout accurately
+                    items.sort((a, b) => {
+                        const yDiff = b.y - a.y; 
+                        if (Math.abs(yDiff) > 4) return yDiff; // 4pt tolerance for same row
+                        return a.x - b.x;
+                    });
+                    
+                    const sortedText = items.map(i => i.str).join(' ');
+                    
+                    // 1. Extract "GRAND TOTAL" for Receipt Amount
+                    if (!receiptFound) {
+                        const regexGrand = /GRAND\s+TOTAL\s+([\d,]+\.\d{2})(?:\s+([\d,]+\.\d{2}))?(?:\s+([\d,]+\.\d{2}))?(?:\s+([\d,]+\.\d{2}))?(?:\s+([\d,]+\.\d{2}))?/i;
+                        const matchGrand = sortedText.match(regexGrand);
+                        
+                        if (matchGrand) {
+                            // Find the very last captured group that has a value (the final column)
+                            let extractedAmount = matchGrand[1];
+                            for(let j = 5; j >= 1; j--) {
+                                if (matchGrand[j]) {
+                                    extractedAmount = matchGrand[j];
+                                    break;
+                                }
+                            }
+                            
+                            // Set the value in the UI
+                            const calcReceipt = document.getElementById('calc-receipt');
+                            calcReceipt.value = extractedAmount;
+                            
+                            // Visual AI Feedback - Flash the input box
+                            calcReceipt.classList.add('ring-2', 'ring-green-400', 'bg-green-900/40');
+                            setTimeout(() => {
+                                calcReceipt.classList.remove('ring-2', 'ring-green-400', 'bg-green-900/40');
+                            }, 2000);
+                            
+                            // Add AI badge to the label
+                            document.getElementById('label-receipt').innerHTML = `Receipt Amount <span class="text-[10px] sm:text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded ml-2 border border-green-500/30 shadow-[0_0_8px_rgba(74,222,128,0.2)] whitespace-nowrap">✨</span>`;
+                            
+                            // Trigger calculation formatting
+                            calcReceipt.dispatchEvent(new Event('input'));
+                            calcReceipt.dispatchEvent(new Event('blur'));
+                            
+                            console.log("AI Extracted Receipt Amount:", extractedAmount);
+                            receiptFound = true;
+                        }
+                    }
+
+                    // 2. Extract "TOTAL PREVIOUS DUE" for Due Collection
+                    if (!dueFound) {
+                        const regexDue = /TOTAL\s+PREVIOUS\s+DUE\s+([\d,]+\.\d{2})/i;
+                        const matchDue = sortedText.match(regexDue);
+                        
+                        if (matchDue) {
+                            // Find the very first captured amount (Paid column)
+                            let extractedDueAmount = matchDue[1];
+                            
+                            // Set the value in the UI
+                            const calcDue = document.getElementById('calc-due');
+                            calcDue.value = extractedDueAmount;
+                            
+                            // Visual AI Feedback - Flash the input box
+                            calcDue.classList.add('ring-2', 'ring-green-400', 'bg-green-900/40');
+                            setTimeout(() => {
+                                calcDue.classList.remove('ring-2', 'ring-green-400', 'bg-green-900/40');
+                            }, 2000);
+                            
+                            // Add AI badge to the label
+                            document.getElementById('label-due').innerHTML = `Due collection <span class="text-[10px] sm:text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded ml-2 border border-green-500/30 shadow-[0_0_8px_rgba(74,222,128,0.2)] whitespace-nowrap">✨</span>`;
+                            
+                            // Trigger calculation formatting
+                            calcDue.dispatchEvent(new Event('input'));
+                            calcDue.dispatchEvent(new Event('blur'));
+                            
+                            console.log("AI Extracted Due Collection:", extractedDueAmount);
+                            dueFound = true;
+                        }
+                    }
+                    
+                    // Stop searching if we've successfully found both data points
+                    if (receiptFound && dueFound) break; 
+                }
+            } catch (e) {
+                console.error("AI Extraction failed:", e);
+            }
+        }
         
         async function loadPdfFromArrayBuffer(arrayBuffer) {
             originalPdfBytes = new Uint8Array(arrayBuffer);
@@ -671,14 +794,17 @@
             pdfStampY = 20;
             
             await renderPage(currentPageNum);
+            
+            // Run AI Data Extraction after render completes
+            await autoExtractPDFData(originalPdfBytes);
         }
         
         // --- 5. Stamping & Download/View Logic ---
         btnDownload.addEventListener('click', async () => {
             if (!originalPdfBytes) return;
             
-            const originalBtnText = btnDownload.innerText;
-            btnDownload.innerText = "Processing...";
+            const originalBtnHtml = btnDownload.innerHTML;
+            btnDownload.innerHTML = "Processing...";
             btnDownload.disabled = true;
             
             try {
@@ -860,7 +986,7 @@
                 console.error("Error creating PDF: ", error);
                 alert("Error generating PDF. See console for details.");
             } finally {
-                btnDownload.innerText = originalBtnText;
+                btnDownload.innerHTML = originalBtnHtml;
                 btnDownload.disabled = false;
             }
         });
@@ -880,6 +1006,26 @@
                 alert("Please upload a valid PDF file.");
             }
             event.target.value = '';
+        });
+        
+        // Event Listener for the New "Blank Page" Button
+        btnBlankPage.addEventListener('click', async () => {
+            try {
+                // Create a completely new PDF
+                const newPdf = await PDFLib.PDFDocument.create();
+                
+                // Add a blank A4 Page (595.28 x 841.89 points)
+                newPdf.addPage([595.28, 841.89]);
+                
+                // Save document to byte array
+                const pdfBytes = await newPdf.save();
+                
+                // Load it into the existing viewer logic
+                await loadPdfFromArrayBuffer(pdfBytes.buffer);
+            } catch (error) {
+                console.error("Error creating blank PDF:", error);
+                alert("Could not generate a blank page.");
+            }
         });
         
         uploadZone.addEventListener('dragover', (e) => {
