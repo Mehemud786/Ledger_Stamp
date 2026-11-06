@@ -299,7 +299,7 @@
         
         // --- PDF Editor Elements ---
         const pdfUpload = document.getElementById('pdf-upload');
-        const btnBlankPage = document.getElementById('btn-blank-page'); // New Element
+        const btnBlankPage = document.getElementById('btn-blank-page');
         const btnDownload = document.getElementById('btn-download');
         const pdfContainer = document.getElementById('pdf-container');
         const pdfCanvas = document.getElementById('pdf-canvas');
@@ -338,14 +338,14 @@
         let pdfPageHeight = 0;
         let canvasScale = 1;
         
-        // --- Responsive Drag State (Stored in Native PDF Document Coordinates) ---
+        // --- Responsive Drag State ---
         let isDragging = false;
-        let pdfStampX = 30; // Native document X
-        let pdfStampY = 30; // Native document Y
+        let pdfStampX = 30;
+        let pdfStampY = 30;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
         
-        // --- Resize Listener for Responsiveness ---
+        // --- Resize Listener ---
         let resizeTimer;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimer);
@@ -364,12 +364,11 @@
             }
         }
         
-        // --- Add Dynamic Addition Cash Row Logic (+) ---
+        // --- Add Dynamic Rows ---
         btnAddCashRow.addEventListener('click', () => {
             createDynamicCashRow('add', '(+)', 'dynamic-cash-val-add', 'text-gray-400');
         });
         
-        // --- Add Dynamic Subtraction Cash Row Logic (-) ---
         btnSubCashRow.addEventListener('click', () => {
             createDynamicCashRow('sub', '(-)', 'dynamic-cash-val-sub', 'text-red-400');
         });
@@ -379,29 +378,24 @@
             const row = document.createElement('div');
             row.className = `dynamic-cash-row dynamic-cash-row-${type} flex items-center gap-1 sm:gap-2 mt-2`;
             
-            // Name Box
             const nameInput = document.createElement('input');
             nameInput.type = 'text';
             nameInput.className = 'dynamic-cash-name bg-gray-700 border border-gray-600 rounded px-2 py-2 focus:outline-none focus:border-blue-500 transition-colors flex-grow text-sm sm:text-base min-w-[80px]';
             nameInput.placeholder = 'Note';
             nameInput.addEventListener('input', calculateMath);
             
-            // +/- Icon visual indicator
             const operatorLabel = document.createElement('div');
             operatorLabel.className = `${labelClass} font-bold px-1 text-sm sm:text-base`;
             operatorLabel.textContent = labelText;
             
-            // Value Box
             const valInput = document.createElement('input');
             valInput.type = 'text';
             valInput.inputMode = 'numeric';
             valInput.className = `${inputClass} bg-gray-700 border border-gray-600 rounded px-2 py-2 text-right focus:outline-none focus:border-blue-500 transition-colors w-24 sm:w-32 text-base sm:text-lg`;
             valInput.placeholder = '0';
-            
             valInput.addEventListener('input', calculateMath);
             valInput.addEventListener('blur', formatNumberInput);
             
-            // Delete Button
             const delBtn = document.createElement('button');
             delBtn.innerHTML = `
                 <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -435,7 +429,6 @@
         
         // --- 1. Real-time Calculation Logic ---
         function calculateMath() {
-            // Base Cash sum calculation (+ and -)
             const baseCash = Number(calcCash.value.replace(/,/g, '')) || 0;
             const cashDetails = [];
             let totalCash = baseCash;
@@ -446,17 +439,12 @@
                 const valInput = row.querySelector(isAdd ? '.dynamic-cash-val-add' : '.dynamic-cash-val-sub');
                 const val = Number(valInput.value.replace(/,/g, '')) || 0;
                 
-                cashDetails.push({
-                    name: name,
-                    operator: isAdd ? '(+)' : '(-)',
-                    value: val
-                });
+                cashDetails.push({ name, operator: isAdd ? '(+)' : '(-)', value: val });
                 
                 if (isAdd) totalCash += val;
                 else totalCash -= val;
             });
             
-            // Main Receipt Calculation
             const receipt = Number(calcReceipt.value.replace(/,/g, '')) || 0;
             const due = Number(calcDue.value.replace(/,/g, '')) || 0;
             const expanse = Number(calcExpanse.value.replace(/,/g, '')) || 0;
@@ -471,7 +459,6 @@
             outSub2.textContent = sub2.toLocaleString('en-IN');
             outFinal.textContent = finalTotal.toLocaleString('en-IN');
             
-            // Short / Extra Logic
             const diff = totalCash - finalTotal;
             if (diff < 0) {
                 uiCashStatus.innerHTML = `<span class="text-red-400">Cash Short :</span><span class="text-red-400 pr-2">${Math.abs(diff).toLocaleString('en-IN')}</span>`;
@@ -534,7 +521,6 @@
                 cashLines[0] = `<span style="font-weight: bold;">${cashLines[0]}</span>`;
             }
             
-            // Format HTML status text (Allows emoji)
             const diff = currentCalculations.totalCash - currentCalculations.final;
             let statusHtml = '';
             if (diff < 0) {
@@ -545,7 +531,6 @@
                 statusHtml = `Cash ✔️OK`;
             }
             
-            // Notice: flex-col wraps the left block and the status block to preserve the 100px gap with the right block
             stampOverlay.innerHTML = `
                 <div class="stamp-content">
                     <div class="flex flex-col" style="gap: 10px;">
@@ -586,7 +571,6 @@
             updateStampPosition();
         }
         
-        // Mouse Events
         stampOverlay.addEventListener('mousedown', (e) => {
             isDragging = true;
             stampOverlay.style.cursor = 'grabbing';
@@ -595,19 +579,9 @@
             dragOffsetY = e.clientY - rect.top;
             e.preventDefault();
         });
+        window.addEventListener('mousemove', (e) => { if (isDragging) handleDragMove(e.clientX, e.clientY); });
+        window.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; stampOverlay.style.cursor = 'grab'; } });
         
-        window.addEventListener('mousemove', (e) => {
-            if (isDragging) handleDragMove(e.clientX, e.clientY);
-        });
-        
-        window.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                stampOverlay.style.cursor = 'grab';
-            }
-        });
-        
-        // Touch Events
         stampOverlay.addEventListener('touchstart', (e) => {
             isDragging = true;
             const rect = stampOverlay.getBoundingClientRect();
@@ -615,18 +589,10 @@
             dragOffsetX = touch.clientX - rect.left;
             dragOffsetY = touch.clientY - rect.top;
         }, { passive: false });
-        
         window.addEventListener('touchmove', (e) => {
-            if (isDragging) {
-                e.preventDefault();
-                const touch = e.touches[0];
-                handleDragMove(touch.clientX, touch.clientY);
-            }
+            if (isDragging) { e.preventDefault(); handleDragMove(e.touches[0].clientX, e.touches[0].clientY); }
         }, { passive: false });
-        
-        window.addEventListener('touchend', () => {
-            if (isDragging) isDragging = false;
-        });
+        window.addEventListener('touchend', () => { if (isDragging) isDragging = false; });
         
         // --- 4. Render PDF Page to Canvas (Responsive) ---
         async function renderPage(pageNum) {
@@ -639,12 +605,8 @@
             const availableWidth = canvasWrapper.clientWidth - containerPadding;
             
             canvasScale = Math.min(1.5, availableWidth / viewportForScale.width);
-            
             const viewport = page.getViewport({ scale: canvasScale });
-            
-            // Reduced the multiplier by 30% (from 3 down to 2.1)
             const outputScale = (window.devicePixelRatio || 1) * 2.1;
-            
             const context = pdfCanvas.getContext('2d');
             
             pdfCanvas.width = Math.floor(viewport.width * outputScale);
@@ -672,7 +634,6 @@
             currentPageNum--;
             renderPage(currentPageNum);
         });
-        
         btnNextPage.addEventListener('click', () => {
             if (currentPageNum >= totalPages) return;
             currentPageNum++;
@@ -682,26 +643,29 @@
         // --- AI Screen Capture & Data Extraction (UPI) ---
         btnUpiCapture.addEventListener('click', async () => {
             try {
-                // UI Loading state
-                const originalHtml = btnUpiCapture.innerHTML;
-                btnUpiCapture.innerHTML = `<svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>`;
-                btnUpiCapture.disabled = true;
-
                 // 1. Request Screen Share
                 const stream = await navigator.mediaDevices.getDisplayMedia({ 
                     video: { displaySurface: "browser" }, 
                     audio: false 
                 });
                 
+                btnUpiCapture.disabled = true;
+
                 // 2. Create a hidden video element to capture the stream frame
                 const video = document.createElement('video');
                 video.srcObject = stream;
                 await video.play();
 
-                // Wait a moment for video to render onto the screen safely
-                await new Promise(r => setTimeout(r, 600));
+                // 3. 15-Second Rendering / Setup Delay
+                // Gives the user 15 seconds to switch tabs, scroll to the right spot, etc.
+                for (let i = 15; i > 0; i--) {
+                    btnUpiCapture.innerHTML = `<span class="text-[10px] font-bold">${i}s</span>`;
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+                
+                btnUpiCapture.innerHTML = `<svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>`;
 
-                // 3. Draw the current frame to a canvas
+                // 4. Draw the current frame to a canvas
                 const canvas = document.createElement('canvas');
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
@@ -711,20 +675,18 @@
                 // Stop all sharing tracks instantly to close the screen sharing dialog
                 stream.getTracks().forEach(track => track.stop());
 
-                // 4. Run OCR on the captured canvas image using Tesseract.js
+                // 5. Run OCR on the captured canvas image using Tesseract.js
                 const worker = await Tesseract.createWorker('eng');
                 const { data: { text } } = await worker.recognize(canvas);
                 await worker.terminate();
 
                 console.log("OCR Extracted Text from Screen:\n", text);
 
-                // 5. Parse numerical values and sum them up
-                // We're looking for common currency transaction formats:
-                // ₹ 500.00, + 150, Rs 50, etc.
+                // 6. Parse only "Cr Amount :" or similar credit values
                 let total = 0;
                 
-                // Primary Regex to locate explicitly marked currency/transactions
-                const regex = /(?:₹|Rs\.?|\+)\s*([\d,]+(?:\.\d{1,2})?)/gi;
+                // Regex matches "Cr", "Cr.", "Credit", or "Cr Amount", followed by an optional colon, optional currency, and the number
+                const regex = /(?:Cr\.?|Credit)\s*(?:Amount)?\s*:?\s*(?:₹|Rs\.?)?\s*([\d,]+(?:\.\d{1,2})?)/gi;
                 let match;
                 
                 while ((match = regex.exec(text)) !== null) {
@@ -735,31 +697,21 @@
                     }
                 }
 
-                // Fallback: If nothing was found with strict symbols, search for standalone numbers with exactly 2 decimal places
-                if (total === 0) {
-                    const fallbackRegex = /(?:^|\s)\+?\s*([\d,]+\.\d{2})(?=\s|$)/gm; 
-                    while ((match = fallbackRegex.exec(text)) !== null) {
-                        const valStr = match[1].replace(/,/g, '');
-                        const val = parseFloat(valStr);
-                        if (!isNaN(val)) {
-                            total += val;
-                        }
-                    }
-                }
-
-                // 6. Update the UPI UI Field
+                // Update the UPI UI Field
                 calcUpi.value = total;
                 
                 // Visual feedback to indicate automated entry
                 calcUpi.classList.add('ring-2', 'ring-purple-400', 'bg-purple-900/40');
+                
+                // 15 seconds visual rendering time for the success state
                 setTimeout(() => {
                     calcUpi.classList.remove('ring-2', 'ring-purple-400', 'bg-purple-900/40');
-                }, 2000);
+                }, 15000); 
                 
                 calcUpi.dispatchEvent(new Event('input'));
                 calcUpi.dispatchEvent(new Event('blur'));
 
-                alert(`Extraction Complete!\nSum of transaction values found: ${total}`);
+                alert(`Extraction Complete!\nSum of Cr Amounts found: ${total}`);
 
             } catch (err) {
                 console.error("Screen capture/OCR error:", err);
@@ -775,111 +727,74 @@
         async function autoExtractPDFData(pdfBytes) {
             try {
                 const pdf = await pdfjsLib.getDocument({ data: pdfBytes.slice(0) }).promise;
-                
                 let receiptFound = false;
                 let dueFound = false;
 
-                // Scan pages for the target table rows
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
                     const textContent = await page.getTextContent();
                     
-                    // Map items with X, Y coordinates
                     let items = textContent.items.map(item => ({
                         str: item.str.trim(),
                         x: item.transform[4],
                         y: item.transform[5]
                     })).filter(i => i.str.length > 0);
                     
-                    // Sort top-to-bottom (Y descending), then left-to-right (X ascending)
-                    // This reconstructs the tabular layout accurately
                     items.sort((a, b) => {
                         const yDiff = b.y - a.y; 
-                        if (Math.abs(yDiff) > 4) return yDiff; // 4pt tolerance for same row
+                        if (Math.abs(yDiff) > 4) return yDiff;
                         return a.x - b.x;
                     });
                     
                     const sortedText = items.map(i => i.str).join(' ');
                     
-                    // 1. Extract "GRAND TOTAL" for Receipt Amount
                     if (!receiptFound) {
                         const regexGrand = /GRAND\s+TOTAL\s+([\d,]+\.\d{2})(?:\s+([\d,]+\.\d{2}))?(?:\s+([\d,]+\.\d{2}))?(?:\s+([\d,]+\.\d{2}))?(?:\s+([\d,]+\.\d{2}))?/i;
                         const matchGrand = sortedText.match(regexGrand);
-                        
                         if (matchGrand) {
-                            // Find the very last captured group that has a value (the final column)
                             let extractedAmount = matchGrand[1];
                             for(let j = 5; j >= 1; j--) {
-                                if (matchGrand[j]) {
-                                    extractedAmount = matchGrand[j];
-                                    break;
-                                }
+                                if (matchGrand[j]) { extractedAmount = matchGrand[j]; break; }
                             }
                             
-                            // Set the value in the UI
                             const calcReceipt = document.getElementById('calc-receipt');
                             calcReceipt.value = extractedAmount;
-                            
-                            // Visual AI Feedback - Flash the input box
                             calcReceipt.classList.add('ring-2', 'ring-green-400', 'bg-green-900/40');
-                            setTimeout(() => {
-                                calcReceipt.classList.remove('ring-2', 'ring-green-400', 'bg-green-900/40');
-                            }, 2000);
+                            setTimeout(() => calcReceipt.classList.remove('ring-2', 'ring-green-400', 'bg-green-900/40'), 2000);
                             
-                            // Add AI badge to the label
                             document.getElementById('label-receipt').innerHTML = `Receipt Amount <span class="text-[10px] sm:text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded ml-2 border border-green-500/30 shadow-[0_0_8px_rgba(74,222,128,0.2)] whitespace-nowrap">✨ AI Extracted</span>`;
                             
-                            // Trigger calculation formatting
                             calcReceipt.dispatchEvent(new Event('input'));
                             calcReceipt.dispatchEvent(new Event('blur'));
-                            
-                            console.log("AI Extracted Receipt Amount:", extractedAmount);
                             receiptFound = true;
                         }
                     }
 
-                    // 2. Extract "TOTAL PREVIOUS DUE" for Due Collection
                     if (!dueFound) {
                         const regexDue = /TOTAL\s+PREVIOUS\s+DUE\s+([\d,]+\.\d{2})/i;
                         const matchDue = sortedText.match(regexDue);
-                        
                         if (matchDue) {
-                            // Find the very first captured amount (Paid column)
                             let extractedDueAmount = matchDue[1];
-                            
-                            // Set the value in the UI
                             const calcDue = document.getElementById('calc-due');
                             calcDue.value = extractedDueAmount;
                             
-                            // Visual AI Feedback - Flash the input box
                             calcDue.classList.add('ring-2', 'ring-green-400', 'bg-green-900/40');
-                            setTimeout(() => {
-                                calcDue.classList.remove('ring-2', 'ring-green-400', 'bg-green-900/40');
-                            }, 2000);
+                            setTimeout(() => calcDue.classList.remove('ring-2', 'ring-green-400', 'bg-green-900/40'), 2000);
                             
-                            // Add AI badge to the label
                             document.getElementById('label-due').innerHTML = `Due collection <span class="text-[10px] sm:text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded ml-2 border border-green-500/30 shadow-[0_0_8px_rgba(74,222,128,0.2)] whitespace-nowrap">✨ AI Extracted</span>`;
                             
-                            // Trigger calculation formatting
                             calcDue.dispatchEvent(new Event('input'));
                             calcDue.dispatchEvent(new Event('blur'));
-                            
-                            console.log("AI Extracted Due Collection:", extractedDueAmount);
                             dueFound = true;
                         }
                     }
-                    
-                    // Stop searching if we've successfully found both data points
                     if (receiptFound && dueFound) break; 
                 }
-            } catch (e) {
-                console.error("AI Extraction failed:", e);
-            }
+            } catch (e) { console.error("AI Extraction failed:", e); }
         }
         
         async function loadPdfFromArrayBuffer(arrayBuffer) {
             originalPdfBytes = new Uint8Array(arrayBuffer);
-            
             btnDownload.disabled = false;
             btnDownload.classList.remove('hidden');
             
@@ -892,20 +807,15 @@
             canvasWrapper.classList.remove('hidden');
             pdfPagination.classList.remove('hidden');
             stampOverlay.style.display = 'block';
-            
-            pdfStampX = 20;
-            pdfStampY = 20;
+            pdfStampX = 20; pdfStampY = 20;
             
             await renderPage(currentPageNum);
-            
-            // Run AI Data Extraction after render completes
             await autoExtractPDFData(originalPdfBytes);
         }
         
         // --- 5. Stamping & Download/View Logic ---
         btnDownload.addEventListener('click', async () => {
             if (!originalPdfBytes) return;
-            
             const originalBtnHtml = btnDownload.innerHTML;
             btnDownload.innerHTML = "Processing...";
             btnDownload.disabled = true;
@@ -915,24 +825,14 @@
                 const courierFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Courier);
                 const courierBoldFont = await pdfDoc.embedFont(PDFLib.StandardFonts.CourierBold);
                 const pages = pdfDoc.getPages();
-                
                 const targetPage = pages[currentPageNum - 1];
                 
-                // Layout Configurations (Native PDF sizes)
-                const fontSize = 14; // Matched to CSS
-                const lineHeight = 15.4; // fontSize * 1.1
-                const padding = 6;
-                const gap = 100; // 100px gap between the two main boxes
-                const statusVerticalGap = 10; // 10px gap to the bottom status box
-                
-                // Overlay Top-Left Anchor
+                const fontSize = 14; const lineHeight = 15.4; const padding = 6; const gap = 100; const statusVerticalGap = 10;
                 const overlayPdfYTop = pdfPageHeight - pdfStampY;
                 
-                // 1. Get and measure strings
                 const cashLines = getCashStampLines();
                 const receiptLines = getReceiptStampLines();
                 
-                // Measure Widths & Heights
                 const longestCashLine = [...cashLines].sort((a, b) => b.length - a.length)[0];
                 const cashTextWidth = courierFont.widthOfTextAtSize(longestCashLine, fontSize);
                 const cashRectHeight = (cashLines.length * lineHeight) + (padding * 2);
@@ -943,235 +843,98 @@
                 const receiptRectHeight = (receiptLines.length * lineHeight) + (padding * 2);
                 const receiptRectWidth = receiptTextWidth + (padding * 2);
                 
-                // Coordinate Calculations
-                const leftBoxX = pdfStampX;
-                const leftBoxY = (pdfPageHeight - pdfStampY) - cashRectHeight;
+                const leftBoxX = pdfStampX; const leftBoxY = (pdfPageHeight - pdfStampY) - cashRectHeight;
+                const rightBoxX = leftBoxX + cashRectWidth + gap; const rightBoxY = (pdfPageHeight - pdfStampY) - receiptRectHeight;
                 
-                const rightBoxX = leftBoxX + cashRectWidth + gap;
-                const rightBoxY = (pdfPageHeight - pdfStampY) - receiptRectHeight;
-                
-                // 2. Draw Left Text Block (Cash Summary) Background
                 targetPage.drawRectangle({
-                    x: leftBoxX,
-                    y: leftBoxY,
-                    width: cashRectWidth,
-                    height: cashRectHeight,
-                    color: PDFLib.rgb(1, 1, 1),
-                    borderColor: PDFLib.rgb(0.23, 0.51, 0.96),
-                    borderWidth: 1,
-                    borderDashArray: [3, 3],
-                    opacity: 0.9
+                    x: leftBoxX, y: leftBoxY, width: cashRectWidth, height: cashRectHeight,
+                    color: PDFLib.rgb(1, 1, 1), borderColor: PDFLib.rgb(0.23, 0.51, 0.96),
+                    borderWidth: 1, borderDashArray: [3, 3], opacity: 0.9
                 });
                 
-                // Text for Left Block
-                const leftTextX = leftBoxX + padding;
-                const leftTextY = (pdfPageHeight - pdfStampY) - padding - fontSize + 2;
+                const leftTextX = leftBoxX + padding; const leftTextY = (pdfPageHeight - pdfStampY) - padding - fontSize + 2;
                 
                 if (currentCalculations.cashDetails.length > 0) {
-                    const normalCash = cashLines.slice(0, -1).join('\n');
-                    const boldCash = cashLines[cashLines.length - 1];
-                    
-                    targetPage.drawText(normalCash, {
-                        x: leftTextX,
-                        y: leftTextY,
-                        size: fontSize,
-                        font: courierFont,
-                        color: PDFLib.rgb(0, 0, 0),
-                        lineHeight: lineHeight
-                    });
-                    targetPage.drawText(boldCash, {
-                        x: leftTextX,
-                        y: leftTextY - ((cashLines.length - 1) * lineHeight),
-                        size: fontSize,
-                        font: courierBoldFont,
-                        color: PDFLib.rgb(0, 0, 0),
-                        lineHeight: lineHeight
-                    });
+                    const normalCash = cashLines.slice(0, -1).join('\n'); const boldCash = cashLines[cashLines.length - 1];
+                    targetPage.drawText(normalCash, { x: leftTextX, y: leftTextY, size: fontSize, font: courierFont, color: PDFLib.rgb(0, 0, 0), lineHeight: lineHeight });
+                    targetPage.drawText(boldCash, { x: leftTextX, y: leftTextY - ((cashLines.length - 1) * lineHeight), size: fontSize, font: courierBoldFont, color: PDFLib.rgb(0, 0, 0), lineHeight: lineHeight });
                 } else {
-                    targetPage.drawText(cashLines[0], {
-                        x: leftTextX,
-                        y: leftTextY,
-                        size: fontSize,
-                        font: courierBoldFont,
-                        color: PDFLib.rgb(0, 0, 0)
-                    });
+                    targetPage.drawText(cashLines[0], { x: leftTextX, y: leftTextY, size: fontSize, font: courierBoldFont, color: PDFLib.rgb(0, 0, 0) });
                 }
                 
-                // 2.5 Draw Cash Status Box (Below Cash Summary)
                 const diff = currentCalculations.totalCash - currentCalculations.final;
-                
-                // Note: Standard fonts can't reliably render emojis like "✔️". Stripped for PDF generation.
-                const statusPdfText = diff < 0 ? `Cash Short : ${Math.abs(diff).toLocaleString('en-IN')}` :
-                    (diff > 0 ? `Cash Extra : ${diff.toLocaleString('en-IN')}` : `Cash OK`);
+                const statusPdfText = diff < 0 ? `Cash Short : ${Math.abs(diff).toLocaleString('en-IN')}` : (diff > 0 ? `Cash Extra : ${diff.toLocaleString('en-IN')}` : `Cash OK`);
                 
                 const statusTextWidth = courierBoldFont.widthOfTextAtSize(statusPdfText, fontSize);
-                const statusRectHeight = lineHeight + (padding * 2);
-                const statusRectWidth = statusTextWidth + (padding * 2);
-                
-                const statusBoxX = leftBoxX;
-                const statusBoxY = leftBoxY - statusVerticalGap - statusRectHeight;
+                const statusRectHeight = lineHeight + (padding * 2); const statusRectWidth = statusTextWidth + (padding * 2);
+                const statusBoxX = leftBoxX; const statusBoxY = leftBoxY - statusVerticalGap - statusRectHeight;
                 
                 targetPage.drawRectangle({
-                    x: statusBoxX,
-                    y: statusBoxY,
-                    width: statusRectWidth,
-                    height: statusRectHeight,
-                    color: PDFLib.rgb(1, 1, 1),
-                    borderColor: PDFLib.rgb(0.23, 0.51, 0.96),
-                    borderWidth: 1,
-                    borderDashArray: [3, 3],
-                    opacity: 0.9
+                    x: statusBoxX, y: statusBoxY, width: statusRectWidth, height: statusRectHeight,
+                    color: PDFLib.rgb(1, 1, 1), borderColor: PDFLib.rgb(0.23, 0.51, 0.96),
+                    borderWidth: 1, borderDashArray: [3, 3], opacity: 0.9
                 });
                 
                 const statusTextY = statusBoxY + statusRectHeight - padding - fontSize + 2;
+                targetPage.drawText(statusPdfText, { x: statusBoxX + padding, y: statusTextY, size: fontSize, font: courierBoldFont, color: PDFLib.rgb(0, 0, 0), lineHeight: lineHeight });
                 
-                targetPage.drawText(statusPdfText, {
-                    x: statusBoxX + padding,
-                    y: statusTextY,
-                    size: fontSize,
-                    font: courierBoldFont,
-                    color: PDFLib.rgb(0, 0, 0),
-                    lineHeight: lineHeight
-                });
-                
-                // 3. Draw Right Block (Receipt Calculation) Background
                 targetPage.drawRectangle({
-                    x: rightBoxX,
-                    y: rightBoxY,
-                    width: receiptRectWidth,
-                    height: receiptRectHeight,
-                    color: PDFLib.rgb(1, 1, 1),
-                    borderColor: PDFLib.rgb(0.23, 0.51, 0.96),
-                    borderWidth: 1,
-                    borderDashArray: [3, 3],
-                    opacity: 0.9
+                    x: rightBoxX, y: rightBoxY, width: receiptRectWidth, height: receiptRectHeight,
+                    color: PDFLib.rgb(1, 1, 1), borderColor: PDFLib.rgb(0.23, 0.51, 0.96),
+                    borderWidth: 1, borderDashArray: [3, 3], opacity: 0.9
                 });
                 
-                // Text for Right Block
-                const rightTextX = rightBoxX + padding;
-                const rightTextY = (pdfPageHeight - pdfStampY) - padding - fontSize + 2;
+                const rightTextX = rightBoxX + padding; const rightTextY = (pdfPageHeight - pdfStampY) - padding - fontSize + 2;
+                const normalReceipt = receiptLines.slice(0, -1).join('\n'); const boldReceipt = receiptLines[receiptLines.length - 1];
                 
-                const normalReceipt = receiptLines.slice(0, -1).join('\n');
-                const boldReceipt = receiptLines[receiptLines.length - 1];
+                targetPage.drawText(normalReceipt, { x: rightTextX, y: rightTextY, size: fontSize, font: courierFont, color: PDFLib.rgb(0, 0, 0), lineHeight: lineHeight });
+                targetPage.drawText(boldReceipt, { x: rightTextX, y: rightTextY - ((receiptLines.length - 1) * lineHeight), size: fontSize, font: courierBoldFont, color: PDFLib.rgb(0, 0, 0), lineHeight: lineHeight });
                 
-                targetPage.drawText(normalReceipt, {
-                    x: rightTextX,
-                    y: rightTextY,
-                    size: fontSize,
-                    font: courierFont,
-                    color: PDFLib.rgb(0, 0, 0),
-                    lineHeight: lineHeight
-                });
-                targetPage.drawText(boldReceipt, {
-                    x: rightTextX,
-                    y: rightTextY - ((receiptLines.length - 1) * lineHeight),
-                    size: fontSize,
-                    font: courierBoldFont,
-                    color: PDFLib.rgb(0, 0, 0),
-                    lineHeight: lineHeight
-                });
-                
-                // Save & Serve the File
                 const stampedPdfBytes = await pdfDoc.save();
                 const blob = new Blob([stampedPdfBytes], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
-                
-                const link = document.createElement('a');
-                link.href = url;
-                link.target = '_blank';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
+                const link = document.createElement('a'); link.href = url; link.target = '_blank';
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
                 setTimeout(() => URL.revokeObjectURL(url), 2000);
-                
             } catch (error) {
-                console.error("Error creating PDF: ", error);
-                alert("Error generating PDF. See console for details.");
+                console.error("Error creating PDF: ", error); alert("Error generating PDF.");
             } finally {
-                btnDownload.innerHTML = originalBtnHtml;
-                btnDownload.disabled = false;
+                btnDownload.innerHTML = originalBtnHtml; btnDownload.disabled = false;
             }
         });
         
-        // --- 6. Initial Event Listeners ---
-        calcInputs.forEach(input => {
-            input.addEventListener('input', calculateMath);
-            input.addEventListener('blur', formatNumberInput);
-        });
+        calcInputs.forEach(input => { input.addEventListener('input', calculateMath); input.addEventListener('blur', formatNumberInput); });
         
         pdfUpload.addEventListener('change', async (event) => {
             const file = event.target.files[0];
-            if (file && file.type === 'application/pdf') {
-                const arrayBuffer = await file.arrayBuffer();
-                await loadPdfFromArrayBuffer(arrayBuffer);
-            } else {
-                alert("Please upload a valid PDF file.");
-            }
+            if (file && file.type === 'application/pdf') { const arrayBuffer = await file.arrayBuffer(); await loadPdfFromArrayBuffer(arrayBuffer); }
             event.target.value = '';
         });
         
-        // Event Listener for the New "Blank Page" Button
         btnBlankPage.addEventListener('click', async () => {
             try {
-                // Create a completely new PDF
                 const newPdf = await PDFLib.PDFDocument.create();
-                
-                // Add a blank A4 Page (595.28 x 841.89 points)
                 newPdf.addPage([595.28, 841.89]);
-                
-                // Save document to byte array
                 const pdfBytes = await newPdf.save();
-                
-                // Load it into the existing viewer logic
                 await loadPdfFromArrayBuffer(pdfBytes.buffer);
-            } catch (error) {
-                console.error("Error creating blank PDF:", error);
-                alert("Could not generate a blank page.");
-            }
+            } catch (error) { console.error("Error creating blank PDF:", error); }
         });
         
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.style.opacity = '0.7';
-        });
-        
-        uploadZone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            uploadZone.style.opacity = '1';
-        });
-        
+        uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.style.opacity = '0.7'; });
+        uploadZone.addEventListener('dragleave', (e) => { e.preventDefault(); uploadZone.style.opacity = '1'; });
         uploadZone.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            uploadZone.style.opacity = '1';
+            e.preventDefault(); uploadZone.style.opacity = '1';
             const file = e.dataTransfer.files[0];
-            if (file && file.type === 'application/pdf') {
-                const arrayBuffer = await file.arrayBuffer();
-                await loadPdfFromArrayBuffer(arrayBuffer);
-            } else {
-                alert("Please drop a valid PDF file.");
-            }
+            if (file && file.type === 'application/pdf') { const arrayBuffer = await file.arrayBuffer(); await loadPdfFromArrayBuffer(arrayBuffer); }
         });
         
-        // --- 7. Clear PDF Logic ---
         btnClearPdf.addEventListener('click', () => {
-            originalPdfBytes = null;
-            loadedPdfDoc = null;
-            currentPageNum = 1;
-            totalPages = 1;
-            
-            btnDownload.disabled = true;
-            btnDownload.classList.add('hidden');
-            canvasWrapper.classList.add('hidden');
-            uploadZone.classList.remove('hidden');
-            pdfPagination.classList.add('hidden');
-            stampOverlay.style.display = 'none';
-            
-            const context = pdfCanvas.getContext('2d');
-            context.clearRect(0, 0, pdfCanvas.width, pdfCanvas.height);
+            originalPdfBytes = null; loadedPdfDoc = null; currentPageNum = 1; totalPages = 1;
+            btnDownload.disabled = true; btnDownload.classList.add('hidden'); canvasWrapper.classList.add('hidden');
+            uploadZone.classList.remove('hidden'); pdfPagination.classList.add('hidden'); stampOverlay.style.display = 'none';
+            const context = pdfCanvas.getContext('2d'); context.clearRect(0, 0, pdfCanvas.width, pdfCanvas.height);
         });
         
-        // Initialize state
         calculateMath();
     </script>
 </body>
