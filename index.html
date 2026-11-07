@@ -110,7 +110,7 @@
             Ledger Master
         </h1>
     </div>
-
+    
     <!-- Main Two-Column Layout -->
     <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8">
         
@@ -689,7 +689,7 @@
             currentPageNum++;
             renderPage(currentPageNum);
         });
-
+        
         // --- AI PDF Data Extraction ---
         async function autoExtractPDFData(pdfBytes) {
             try {
@@ -697,7 +697,7 @@
                 
                 let receiptFound = false;
                 let dueFound = false;
-
+                
                 // Scan pages for the target table rows
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
@@ -713,7 +713,7 @@
                     // Sort top-to-bottom (Y descending), then left-to-right (X ascending)
                     // This reconstructs the tabular layout accurately
                     items.sort((a, b) => {
-                        const yDiff = b.y - a.y; 
+                        const yDiff = b.y - a.y;
                         if (Math.abs(yDiff) > 4) return yDiff; // 4pt tolerance for same row
                         return a.x - b.x;
                     });
@@ -728,7 +728,7 @@
                         if (matchGrand) {
                             // Find the very last captured group that has a value (the final column)
                             let extractedAmount = matchGrand[1];
-                            for(let j = 5; j >= 1; j--) {
+                            for (let j = 5; j >= 1; j--) {
                                 if (matchGrand[j]) {
                                     extractedAmount = matchGrand[j];
                                     break;
@@ -756,7 +756,7 @@
                             receiptFound = true;
                         }
                     }
-
+                    
                     // 2. Extract "TOTAL PREVIOUS DUE" for Due Collection
                     if (!dueFound) {
                         const regexDue = /TOTAL\s+PREVIOUS\s+DUE\s+([\d,]+\.\d{2})/i;
@@ -789,7 +789,7 @@
                     }
                     
                     // Stop searching if we've successfully found both data points
-                    if (receiptFound && dueFound) break; 
+                    if (receiptFound && dueFound) break;
                 }
             } catch (e) {
                 console.error("AI Extraction failed:", e);
@@ -1107,18 +1107,29 @@
         async function extractUpiAmount(arrayBuffer) {
             try {
                 // Hardcoded password for the protected PDF
-                const pdfPassword = "2074202100000936"; 
+                //const pdfPassword = "2074202100000936"; 
+                // Fetch password securely from Vercel API
+                let pdfPassword = "";
+                try {
+                    const pwdResponse = await fetch('/api/get-password.js');
+                    const pwdData = await pwdResponse.json();
+                    pdfPassword = pwdData.password;
+                } catch (fetchErr) {
+                    console.error("Failed to fetch password from API:", fetchErr);
+                    alert("Configuration error: Could not retrieve PDF password.");
+                    return;
+                }
                 
-                const loadingTask = pdfjsLib.getDocument({ 
+                const loadingTask = pdfjsLib.getDocument({
                     data: arrayBuffer,
-                    password: pdfPassword 
+                    password: pdfPassword
                 });
                 
                 const pdf = await loadingTask.promise;
                 let totalCrSum = 0;
                 let crColumnX = null;
                 let descColumnX = null;
-
+                
                 // Loop through all pages in the PDF
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
@@ -1130,7 +1141,7 @@
                         x: item.transform[4],
                         y: item.transform[5]
                     })).filter(item => item.str.length > 0);
-
+                    
                     // 1. Locate the "Cr Amount" and "Description" headers X-coordinates
                     if (crColumnX === null || descColumnX === null) {
                         for (let j = 0; j < items.length; j++) {
@@ -1139,7 +1150,7 @@
                             if (str === "cr amount" || str === "cr. amount") {
                                 crColumnX = items[j].x;
                             } else if (str === "cr" || str === "cr.") {
-                                if (items[j+1] && items[j+1].str.toLowerCase().includes("amount") && Math.abs(items[j+1].y - items[j].y) < 5) {
+                                if (items[j + 1] && items[j + 1].str.toLowerCase().includes("amount") && Math.abs(items[j + 1].y - items[j].y) < 5) {
                                     crColumnX = items[j].x;
                                 }
                             }
@@ -1149,7 +1160,7 @@
                             }
                         }
                     }
-
+                    
                     // 2. If columns are found, extract amounts and filter by description
                     if (crColumnX !== null && descColumnX !== null) {
                         for (const item of items) {
@@ -1160,18 +1171,18 @@
                                     if (!isNaN(val)) {
                                         // MODIFICATION: Read a taller vertical block to catch multi-line descriptions
                                         // Check up to 10 points above the amount line, and 50 points below it
-                                        const sameLineDescItems = items.filter(d => 
-                                            d.y <= item.y + 10 && 
-                                            d.y >= item.y - 50 && 
-                                            d.x >= descColumnX - 40 && 
-                                            d.x < crColumnX - 20 
+                                        const sameLineDescItems = items.filter(d =>
+                                            d.y <= item.y + 10 &&
+                                            d.y >= item.y - 50 &&
+                                            d.x >= descColumnX - 40 &&
+                                            d.x < crColumnX - 20
                                         );
                                         
                                         const descText = sameLineDescItems.map(d => d.str).join(' ').toLowerCase();
                                         
                                         // Condition: Exclude rows containing specific keywords anywhere in that multi-line block
-                                        if (descText.includes("from:") || 
-                                            descText.includes("atm dep") || 
+                                        if (descText.includes("from:") ||
+                                            descText.includes("atm dep") ||
                                             descText.includes("nirnoy clinic") ||
                                             descText.includes("by cash")) {
                                             console.log("Excluded non-UPI transfer:", val, descText);
