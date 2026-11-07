@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ledger_Master - Business Accounting</title>
+    <title>Ledger Master - Business Accounting</title>
+    
+    <!-- App Favicon -->
+    <link rel="icon" href="/ledger_master icon.jpg" type="image/jpg">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -100,6 +103,14 @@
 
 <body class="bg-gray-900 text-gray-100 min-h-screen p-4 sm:p-6 font-sans">
     
+    <!-- App Header -->
+    <div class="max-w-7xl mx-auto mb-6 flex items-center gap-3 sm:gap-4 pb-4 border-b border-gray-700/60">
+        <img src="/ledger_master icon.jpg" alt="Ledger Master Logo" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shadow-lg border border-gray-600 object-cover">
+        <h1 class="text-2xl sm:text-3xl font-bold text-[#FDC303]">
+            Ledger Master
+        </h1>
+    </div>
+
     <!-- Main Two-Column Layout -->
     <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8">
         
@@ -299,7 +310,7 @@
         
         // --- PDF Editor Elements ---
         const pdfUpload = document.getElementById('pdf-upload');
-        const btnBlankPage = document.getElementById('btn-blank-page'); // New Element
+        const btnBlankPage = document.getElementById('btn-blank-page');
         const btnDownload = document.getElementById('btn-download');
         const pdfContainer = document.getElementById('pdf-container');
         const pdfCanvas = document.getElementById('pdf-canvas');
