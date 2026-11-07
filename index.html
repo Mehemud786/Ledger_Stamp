@@ -140,7 +140,15 @@
                     <div class="col-start-3 text-right font-semibold pr-2" id="out-sub2">0</div>
                     
                     <!-- UPI -->
-                    <div>UPI</div>
+                    <div class="flex items-center gap-2">
+                        <span id="label-upi">UPI</span>
+                        <button id="btn-upi-pdf" class="bg-blue-600 hover:bg-blue-500 text-white rounded p-1 shadow-sm transition-colors" title="Fetch UPI PDF">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </button>
+                        <input type="file" id="upi-pdf-upload" accept="application/pdf" class="hidden">
+                    </div>
                     <div class="text-center text-gray-400 px-1">(-)</div>
                     <input type="text" inputmode="numeric" id="calc-upi" class="bg-gray-700 border border-gray-600 rounded px-2 py-2 text-right focus:outline-none focus:border-blue-500 transition-colors w-full" placeholder="0">
                     
@@ -280,6 +288,9 @@
         const outTotalCash = document.getElementById('out-total-cash');
         const uiCashStatus = document.getElementById('ui-cash-status');
         const calcInputs = [calcCash, calcReceipt, calcDue, calcExpanse, calcUpi];
+        
+        const btnUpiPdf = document.getElementById('btn-upi-pdf');
+        const upiPdfUpload = document.getElementById('upi-pdf-upload');
         
         // --- Dynamic Cash Rows Elements ---
         const btnAddCashRow = document.getElementById('btn-add-cash-row');
@@ -1067,6 +1078,132 @@
             const context = pdfCanvas.getContext('2d');
             context.clearRect(0, 0, pdfCanvas.width, pdfCanvas.height);
         });
+        
+        // --- 8. UPI PDF Extraction Logic ---
+        btnUpiPdf.addEventListener('click', () => {
+            upiPdfUpload.click();
+        });
+        
+        upiPdfUpload.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                const arrayBuffer = await file.arrayBuffer();
+                await extractUpiAmount(arrayBuffer);
+            }
+            event.target.value = ''; // Reset input
+        });
+        
+        async function extractUpiAmount(arrayBuffer) {
+            try {
+                // Hardcoded password for the protected PDF
+                const pdfPassword = "2074202100000936"; 
+                
+                const loadingTask = pdfjsLib.getDocument({ 
+                    data: arrayBuffer,
+                    password: pdfPassword 
+                });
+                
+                const pdf = await loadingTask.promise;
+                let totalCrSum = 0;
+                let crColumnX = null;
+                let descColumnX = null;
+
+                // Loop through all pages in the PDF
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    
+                    // Filter and map items with their X, Y coordinates
+                    const items = textContent.items.map(item => ({
+                        str: item.str.trim(),
+                        x: item.transform[4],
+                        y: item.transform[5]
+                    })).filter(item => item.str.length > 0);
+
+                    // 1. Locate the "Cr Amount" and "Description" headers X-coordinates
+                    if (crColumnX === null || descColumnX === null) {
+                        for (let j = 0; j < items.length; j++) {
+                            const str = items[j].str.toLowerCase();
+                            
+                            if (str === "cr amount" || str === "cr. amount") {
+                                crColumnX = items[j].x;
+                            } else if (str === "cr" || str === "cr.") {
+                                if (items[j+1] && items[j+1].str.toLowerCase().includes("amount") && Math.abs(items[j+1].y - items[j].y) < 5) {
+                                    crColumnX = items[j].x;
+                                }
+                            }
+                            
+                            if (str === "description" || str === "particulars") {
+                                descColumnX = items[j].x;
+                            }
+                        }
+                    }
+
+                    // 2. If columns are found, extract amounts and filter by description
+                    if (crColumnX !== null && descColumnX !== null) {
+                        for (const item of items) {
+                            if (item.x >= crColumnX - 40 && item.x <= crColumnX + 60) {
+                                if (/^[\d,]+\.?\d*$/.test(item.str)) {
+                                    const val = parseFloat(item.str.replace(/,/g, ''));
+                                    
+                                    if (!isNaN(val)) {
+                                        // MODIFICATION: Read a taller vertical block to catch multi-line descriptions
+                                        // Check up to 10 points above the amount line, and 50 points below it
+                                        const sameLineDescItems = items.filter(d => 
+                                            d.y <= item.y + 10 && 
+                                            d.y >= item.y - 50 && 
+                                            d.x >= descColumnX - 40 && 
+                                            d.x < crColumnX - 20 
+                                        );
+                                        
+                                        const descText = sameLineDescItems.map(d => d.str).join(' ').toLowerCase();
+                                        
+                                        // Condition: Exclude rows containing specific keywords anywhere in that multi-line block
+                                        if (descText.includes("from:") || 
+                                            descText.includes("atm dep") || 
+                                            descText.includes("nirnoy clinic") ||
+                                            descText.includes("by cash")) {
+                                            console.log("Excluded non-UPI transfer:", val, descText);
+                                        } else {
+                                            totalCrSum += val;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // 3. Output the total sum to the UPI text box
+                if (totalCrSum > 0) {
+                    calcUpi.value = totalCrSum.toFixed(2);
+                    
+                    // Visual AI Feedback
+                    calcUpi.classList.add('ring-2', 'ring-green-400', 'bg-green-900/40');
+                    setTimeout(() => {
+                        calcUpi.classList.remove('ring-2', 'ring-green-400', 'bg-green-900/40');
+                    }, 2000);
+                    
+                    document.getElementById('label-upi').innerHTML = `UPI <span class="text-[10px] sm:text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded ml-1 border border-green-500/30 shadow-[0_0_8px_rgba(74,222,128,0.2)] whitespace-nowrap">✨ Total Sum</span>`;
+                    
+                    // Trigger formatting and calculation
+                    calcUpi.dispatchEvent(new Event('input'));
+                    calcUpi.dispatchEvent(new Event('blur'));
+                    
+                    console.log("Summed UPI Amount from all pages:", totalCrSum);
+                } else {
+                    alert("Could not find any valid UPI amounts in the 'Cr Amount' column.");
+                }
+                
+            } catch (e) {
+                console.error("UPI Extraction failed:", e);
+                if (e.name === 'PasswordException') {
+                    alert("Incorrect PDF password. Please update the password in the script.");
+                } else {
+                    alert("Failed to read the UPI PDF.");
+                }
+            }
+        }
         
         // Initialize state
         calculateMath();
